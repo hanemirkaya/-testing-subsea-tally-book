@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Testing & Subsea — Tally Book v1.2.0</title>
+<style>
+:root{--red:#d90000;--ink:#20242b;--muted:#68707c;--line:#e4e7eb;--bg:#f7f8fa;--card:#fff;--ok:#18a957;--fail:#d61f1f;--blue:#2674e8}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg)}
+button,input,textarea,select{font:inherit}button{cursor:pointer}.splash{position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;z-index:100;transition:opacity .45s}.splash.hide{opacity:0;pointer-events:none}.splash-inner{text-align:center}.logo{width:132px;height:132px;border-radius:50%;background:var(--red);display:grid;place-items:center;margin:auto;box-shadow:0 10px 35px #d9000022}.logo span{color:#fff;font-weight:900;font-size:54px;letter-spacing:-6px}.splash-title{font-size:28px;font-weight:750;margin-top:22px}.loader{width:230px;height:5px;background:#d8dadd;border-radius:99px;margin:55px auto 0;overflow:hidden}.loader i{display:block;width:38%;height:100%;background:var(--red);animation:load 1.15s infinite ease-in-out}@keyframes load{0%{transform:translateX(-100%)}100%{transform:translateX(360%)}}
+.app{min-height:100vh}.topbar{height:72px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:20}.brand{display:flex;align-items:center;gap:12px;font-weight:750}.brand .mini{width:38px;height:38px;border-radius:50%;background:var(--red);display:grid;place-items:center;color:#fff;font-weight:900;font-size:21px}.nav{display:flex;gap:10px}.nav button{border:0;background:transparent;padding:10px 14px;color:#4e5662;border-radius:10px}.nav button.active{background:#fff0f0;color:var(--red);font-weight:700}
+main{max-width:1180px;margin:auto;padding:34px 24px 50px}.view{display:none}.view.active{display:block}h1{font-size:30px;margin:0 0 7px}.sub{color:var(--muted);margin:0 0 28px}.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.action{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:25px;text-align:left;box-shadow:0 5px 18px #15233a08}.action.red{background:#fff5f5;border-color:#f1cccc}.action .icon{width:46px;height:46px;border-radius:12px;background:var(--red);color:#fff;display:grid;place-items:center;font-size:28px;margin-bottom:20px}.action h2{font-size:20px;margin:0 0 8px}.action p{color:var(--muted);margin:0}.section-head{display:flex;justify-content:space-between;align-items:center;margin:34px 0 13px}.section-head h2{font-size:20px;margin:0}.link{color:var(--blue);background:none;border:0;font-weight:650}.list{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}.row{display:grid;grid-template-columns:1fr auto;gap:15px;padding:18px 20px;border-bottom:1px solid var(--line);align-items:center}.row:last-child{border-bottom:0}.row-title{font-weight:700}.row-meta{color:var(--muted);font-size:14px;margin-top:5px}.status{display:flex;gap:8px;align-items:center;font-weight:650;font-size:14px}.dot{width:9px;height:9px;border-radius:50%;background:#aeb6c2}.dot.ok{background:var(--ok)}.dot.live{background:var(--blue)}.dot.fail{background:var(--fail)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 5px 18px #15233a08}.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.field label{display:block;font-size:13px;font-weight:700;margin:0 0 7px}.field input,.field textarea,.field select{width:100%;border:1px solid #cfd4db;border-radius:11px;padding:12px 13px;outline:none;background:#fff}.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--red);box-shadow:0 0 0 3px #d9000012}.field.full{grid-column:1/-1}.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}.btn{border:0;border-radius:11px;padding:12px 18px;font-weight:750}.btn.primary{background:var(--red);color:#fff}.btn.secondary{background:#eef0f3;color:#252b33}.btn.danger{background:#fff0f0;color:var(--fail)}.btn.blue{background:#edf4ff;color:#1761c8}.choice{display:flex;gap:10px}.choice button{flex:1;border:1px solid #cfd4db;background:#fff;border-radius:11px;padding:12px;font-weight:750}.choice button.selected{border-color:var(--red);background:#fff0f0;color:var(--red)}
+.phase-banner{border-radius:14px;padding:14px 16px;margin:18px 0;font-weight:750}.phase-banner.low{background:#fff7e8;color:#8a5a00}.phase-banner.high{background:#edf4ff;color:#175fae}.phase-banner.pass{background:#eaf8f0;color:#138746}.phase-banner.fail{background:#fff0f0;color:#ba1717}.live-head{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}.timer{font-variant-numeric:tabular-nums;font-size:42px;font-weight:800;letter-spacing:1px}.live-status{font-weight:750;text-align:right}.meter{height:9px;background:#e9ebee;border-radius:99px;overflow:hidden;margin-top:12px}.meter i{display:block;height:100%;width:0;background:var(--red);transition:width .3s}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}.metric{border:1px solid var(--line);border-radius:13px;padding:15px}.metric b{display:block;font-size:20px;margin-top:5px}.metric span{font-size:12px;color:var(--muted)}.readings{margin-top:20px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px;background:#fff}.reading-table{width:100%;border-collapse:collapse;min-width:760px}.reading-table th,.reading-table td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}.reading-table th{background:#f5f6f8;font-size:12px;text-transform:uppercase;color:#606873}.reading-table tr:last-child td{border-bottom:0}.reading-table input{width:120px;border:1px solid #cfd4db;border-radius:8px;padding:8px}.pill{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:750}.pill.ok{background:#eaf8f0;color:#138746}.pill.fail{background:#fff0f0;color:#ba1717}.pill.wait{background:#f0f2f5;color:#66707b}.back{background:none;border:0;color:var(--muted);padding:0;margin-bottom:15px;font-weight:650}.empty{text-align:center;padding:45px;color:var(--muted)}.toast{position:fixed;right:22px;bottom:22px;background:#20242b;color:#fff;padding:12px 16px;border-radius:11px;opacity:0;transform:translateY(8px);transition:.25s;z-index:200}.toast.show{opacity:1;transform:none}.version{font-size:11px;color:var(--muted);margin-left:4px}
+@media(max-width:760px){.topbar{height:auto;min-height:64px;padding:10px 15px;gap:8px}.brand{font-size:14px}.brand .mini{width:32px;height:32px}.nav button{padding:8px;font-size:12px}.nav button span{display:none}main{padding:22px 15px}.cards,.form-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.live-head{grid-template-columns:1fr}.timer{font-size:36px}.live-status{text-align:left;font-size:12px}.row{grid-template-columns:1fr}.actions{justify-content:stretch}.actions .btn{flex:1}.choice{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="splash" id="splash"><div class="splash-inner"><div class="logo"><span>HT</span></div><div class="splash-title">Testing &amp; Subsea</div><div class="loader"><i></i></div></div></div>
+<div class="app">
+<header class="topbar">
+<div class="brand"><div class="mini">HT</div><div>Testing &amp; Subsea <span class="version">v1.2.0</span></div></div>
+<nav class="nav">
+<button data-view="home" class="active">⌂ <span>Home</span></button>
+<button data-view="tests">▣ <span>Tests</span></button>
+<button data-view="settings">⚙ <span>Settings</span></button>
+</nav>
+</header>
+<main>
+<section id="home" class="view active">
+<h1>Welcome!</h1><p class="sub">Manage your pressure tests and tally records.</p>
+<div class="cards">
+<button class="action red" onclick="showView('new')"><div class="icon">＋</div><h2>New Test</h2><p>Create a new pressure test and start the tally book.</p></button>
+<button class="action" onclick="showView('tests')"><div class="icon" style="background:#edf4ff;color:#2674e8">▤</div><h2>Saved Tests</h2><p>View previous test records and minute-by-minute readings.</p></button>
+</div>
+<div class="section-head"><h2>Recent Tests</h2><button class="link" onclick="showView('tests')">View All</button></div>
+<div id="recent" class="list"></div>
+</section>
+
+<section id="new" class="view">
+<button class="back" onclick="showView('home')">← Home</button>
+<h1>New Test</h1><p class="sub">Enter the test identification and fixed pressure criteria.</p>
+<div class="panel">
+<div class="form-grid">
+<div class="field"><label>Test No</label><input id="fTestNo" placeholder="e.g. 26-0085"></div>
+<div class="field"><label>Test Name</label><input id="fName" placeholder="e.g. Valve Pressure Test"></div>
+<div class="field"><label>Step Number</label><input id="fStep" placeholder="e.g. Step 12"></div>
+<div class="field"><label>Pressure Unit</label><select id="fUnit"><option>psi</option><option>bar</option><option>kPa</option><option>MPa</option></select></div>
+
+<div class="field full"><label>Low Pressure Test Included?</label><div class="choice"><button id="lowYes" onclick="setLow(true)">YES</button><button id="lowNo" class="selected" onclick="setLow(false)">NO</button></div></div>
+
+<div id="lowFields" class="field full" style="display:none">
+<div class="form-grid">
+<div class="field"><label>Low Start Pressure</label><input id="fLowStart" type="number" step="0.01" placeholder="e.g. 500"></div>
+<div class="field"><label>Low Evaluation Period</label><input value="5 minutes" disabled></div>
+<div class="field"><label>Low Criterion</label><input value="5% per hour" disabled></div>
+<div class="field"><label>Low Allowed Drop</label><input id="fLowAllowedPreview" value="Calculated automatically" disabled></div>
+</div>
+</div>
+
+<div class="field"><label>High Start Pressure</label><input id="fHighStart" type="number" step="0.01" placeholder="e.g. 6000"></div>
+<div class="field"><label>High Evaluation Period</label><input value="15 minutes" disabled></div>
+<div class="field"><label>Procedure Criterion</label><input value="5% per hour" disabled></div>
+<div class="field"><label>High Allowed Drop</label><input id="fHighAllowedPreview" value="Calculated automatically" disabled></div>
+<div class="field"><label>Operator</label><input id="fOperator" placeholder="Name"></div>
+<div class="field"><label>Witness</label><input id="fWitness" placeholder="Name"></div>
+<div class="field full"><label>Notes</label><textarea id="fNote" rows="3" placeholder="Pre-test notes..."></textarea></div>
+</div>
+<div class="actions"><button class="btn secondary" onclick="showView('home')">Cancel</button><button class="btn primary" onclick="createTest()">Start Test →</button></div>
+</div>
+</section>
+
+<section id="live" class="view">
+<button class="back" onclick="confirmLeave()">← Tests</button>
+<div class="panel">
+<div id="phaseBanner" class="phase-banner low">LOW PRESSURE TEST</div>
+<div class="live-head">
+<div><div id="liveTitle" style="font-weight:800;font-size:20px">Test</div><div id="liveSection" class="sub" style="margin:5px 0 0"></div></div>
+<div><div class="timer" id="timer">00:00:00</div><div class="live-status" id="liveStatus">TEST IN PROGRESS</div></div>
+</div>
+<div class="meter"><i id="meter"></i></div>
+<div class="metrics">
+<div class="metric"><span>Start</span><b id="mStart">—</b></div>
+<div class="metric"><span>Minimum Allowed</span><b id="mMin">—</b></div>
+<div class="metric"><span>Last Pressure</span><b id="mLast">—</b></div>
+<div class="metric"><span>Allowed Drop</span><b id="mAllowed">—</b></div>
+</div>
+<div id="continueBox" style="display:none" class="phase-banner pass"></div>
+<div id="continueActions" class="actions" style="display:none;margin-top:0"></div>
+<div class="readings">
+<div class="section-head" style="margin-top:0"><h2 id="tallyTitle">Minute-by-Minute Tally</h2><button id="phaseFinishBtn" class="btn danger" onclick="finishTest()">Finish Test</button></div>
+<div class="table-wrap"><table class="reading-table"><thead><tr><th>Minute</th><th>Timestamp</th><th>Actual Pressure</th><th>Drop</th><th>Limit</th><th>Status</th><th>Note</th></tr></thead><tbody id="readingBody"></tbody></table></div>
+</div>
+</div>
+</section>
+
+<section id="tests" class="view"><h1>Tests</h1><p class="sub">All saved tally book records.</p><div id="allTests" class="list"></div></section>
+<section id="detail" class="view"><button class="back" onclick="showView('tests')">← Tests</button><div id="detailPanel"></div></section>
+<section id="settings" class="view"><h1>Settings</h1><p class="sub">Application preferences.</p><div class="panel">
+<div class="field"><label>Application Version</label><input value="v1.2.0" disabled></div>
+<p style="color:var(--muted);font-size:13px;margin-top:15px">v1.2.0 — High: 15-minute evaluation period. Low: 5-minute evaluation period. Both use the same 5% per hour criterion. Tests continue collecting readings after the evaluation period until the operator manually finishes the phase.</p>
+</div></section>
+</main></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='tallyBookTestsV110';
+const APP_VERSION='v1.2.0';
+const RATE_PER_HOUR=5;
+let tests=JSON.parse(localStorage.getItem(KEY)||'[]'),active=null,timerInt=null,lowIncluded=false,lastRenderedMinute=-1;
+
+function save(){localStorage.setItem(KEY,JSON.stringify(tests))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fmtDate(x){return new Date(x).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200)}
+function showView(id){
+document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
+if(id==='home')renderRecent();
+if(id==='tests')renderTests();
+}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+
+function setLow(v){
+lowIncluded=v;
+document.getElementById('lowFields').style.display=v?'block':'none';
+document.getElementById('lowYes').classList.toggle('selected',v);
+document.getElementById('lowNo').classList.toggle('selected',!v);
+updatePreviews();
+}
+document.getElementById('fLowStart').addEventListener('input',updatePreviews);
+document.getElementById('fHighStart').addEventListener('input',updatePreviews);
+function updatePreviews(){
+const ls=Number(document.getElementById('fLowStart').value);
+const hs=Number(document.getElementById('fHighStart').value);
+document.getElementById('fLowAllowedPreview').value=ls>0?(ls*RATE_PER_HOUR/100*5/60).toFixed(2)+' '+document.getElementById('fUnit').value:'Calculated automatically';
+document.getElementById('fHighAllowedPreview').value=hs>0?(hs*RATE_PER_HOUR/100*15/60).toFixed(2)+' '+document.getElementById('fUnit').value:'Calculated automatically';
+}
+
+function createTest(){
+const highStart=Number(document.getElementById('fHighStart').value);
+if(!Number.isFinite(highStart)||highStart<=0){toast('Enter a valid high start pressure.');return}
+let lowData=null;
+if(lowIncluded){
+const ls=Number(document.getElementById('fLowStart').value);
+if(!Number.isFinite(ls)||ls<=0){toast('Enter a valid low start pressure.');return}
+lowData={start:ls,duration:5,criterion:'percent_per_hour',pct:RATE_PER_HOUR,readings:[],startedAt:new Date().toISOString()};
+}
+active={
+id:(crypto.randomUUID?crypto.randomUUID():'T-'+Date.now()),
+appVersion:APP_VERSION,
+testNo:document.getElementById('fTestNo').value||('TEST-'+Date.now().toString().slice(-6)),
+name:document.getElementById('fName').value||'Pressure Test',
+step:document.getElementById('fStep').value||'—',
+unit:document.getElementById('fUnit').value,
+lowIncluded,
+low:lowData,
+high:{start:highStart,duration:15,criterion:'percent_per_hour',pct:RATE_PER_HOUR,readings:[],startedAt:null},
+phase:lowIncluded?'low':'high',
+operator:document.getElementById('fOperator').value,
+witness:document.getElementById('fWitness').value,
+note:document.getElementById('fNote').value,
+status:'live',
+startedAt:new Date().toISOString()
+};
+if(!lowIncluded)active.high.startedAt=active.startedAt;
+tests.unshift(active);save();lastRenderedMinute=-1;renderLive();showView('live');startTimer();
+toast(lowIncluded?'Low pressure test started.':'High pressure test started.');
+}
+
+function currentPhase(){return active[active.phase]}
+function phaseAllowedDrop(){
+const p=currentPhase();
+return p.start*(RATE_PER_HOUR/100)*(p.duration/60);
+}
+function phaseMinimum(){return currentPhase().start-phaseAllowedDrop()}
+function formatDuration(seconds){
+seconds=Math.max(0,Math.floor(seconds));
+const h=Math.floor(seconds/3600),m=Math.floor((seconds%3600)/60),s=seconds%60;
+return [h,m,s].map(x=>String(x).padStart(2,'0')).join(':');
+}
+
+function startTimer(){clearInterval(timerInt);timerInt=setInterval(tick,500);tick()}
+
+function tick(){
+if(!active)return;
+const p=currentPhase();if(!p.startedAt)return;
+const elapsed=Math.max(0,(Date.now()-new Date(p.startedAt).getTime())/1000);
+const evaluationSeconds=p.duration*60;
+const target=Math.floor(elapsed/60);
+
+if(p.readings.length===0)addReading(0,p.startedAt);
+while(p.readings.length<=target){
+const minute=p.readings.length;
+addReading(minute,new Date(new Date(p.startedAt).getTime()+minute*60000).toISOString());
+}
+if(target!==lastRenderedMinute){lastRenderedMinute=target;save();renderReadings()}
+document.getElementById('timer').textContent=formatDuration(elapsed);
+document.getElementById('meter').style.width=Math.min(100,(elapsed/evaluationSeconds)*100)+'%';
+if(elapsed<evaluationSeconds){
+document.getElementById('liveStatus').textContent=(active.phase==='low'?'LOW':'HIGH')+' PRESSURE — STABILIZATION / TEST IN PROGRESS — '+formatDuration(evaluationSeconds-elapsed)+' TO EVALUATION POINT';
+}else{
+document.getElementById('liveStatus').textContent=(active.phase==='low'?'LOW':'HIGH')+' PRESSURE — EVALUATION PERIOD REACHED — CONTINUE UNTIL MANUALLY FINISHED';
+}
+updateContinueUI(elapsed);
+}
+
+function addReading(minute,ts){
+const p=currentPhase();
+if(!p.readings.some(r=>r.minute===minute))p.readings.push({minute,timestamp:ts,pressure:'',note:''});
+}
+
+function setPressure(i,v){
+if(!active)return;
+const p=currentPhase();
+if(!p.readings[i])return;
+p.readings[i].pressure=v;
+save();
+refreshLiveMetrics();
+refreshReadingRow(i);
+}
+function setNote(i,v){
+if(!active)return;
+const p=currentPhase();
+if(!p.readings[i])return;
+p.readings[i].note=v;
+save();
+}
+
+function refreshLiveMetrics(){
+if(!active)return;
+const p=currentPhase(),allow=phaseAllowedDrop();
+document.getElementById('mStart').textContent=p.start.toFixed(2)+' '+active.unit;
+document.getElementById('mMin').textContent=(p.start-allow).toFixed(2)+' '+active.unit;
+document.getElementById('mAllowed').textContent=allow.toFixed(2)+' '+active.unit;
+const filled=p.readings.filter(r=>r.pressure!=='');
+const last=filled.length?filled[filled.length-1]:null;
+document.getElementById('mLast').textContent=last?Number(last.pressure).toFixed(2)+' '+active.unit:'—';
+}
+
+function refreshReadingRow(i){
+const p=currentPhase(),r=p.readings[i],allow=phaseAllowedDrop();
+const row=document.querySelectorAll('#readingBody tr')[i];
+if(!row)return;
+const val=r.pressure===''?null:Number(r.pressure),drop=val===null?null:p.start-val,ok=val===null?null:drop<=allow+1e-9;
+row.children[3].textContent=drop===null?'—':drop.toFixed(2)+' '+active.unit;
+row.children[4].textContent=allow.toFixed(2)+' '+active.unit;
+row.children[5].innerHTML=`<span class="pill ${ok===null?'wait':ok?'ok':'fail'}">${ok===null?'Pending':ok?'OK':'FAIL'}</span>`;
+}
+
+function finalReading(p){
+const filled=p.readings.filter(r=>r.pressure!=='');
+return filled.length?filled[filled.length-1]:null;
+}
+
+function phaseResult(){
+const p=currentPhase();
+const elapsed=(Date.now()-new Date(p.startedAt).getTime())/1000;
+if(elapsed<p.duration*60)return null;
+const last=finalReading(p);
+if(!last)return null;
+return p.start-Number(last.pressure)<=phaseAllowedDrop()+1e-9?'PASS':'FAIL';
+}
+
+function renderLive(){
+if(!active)return;
+const p=currentPhase(),allow=phaseAllowedDrop();
+document.getElementById('liveTitle').textContent=active.testNo+' — '+active.name;
+document.getElementById('liveSection').textContent=active.step+' · '+active.unit;
+const banner=document.getElementById('phaseBanner');
+banner.className='phase-banner '+(active.phase==='low'?'low':'high');
+banner.textContent=active.phase==='low'?'LOW PRESSURE TEST — 5% / HOUR — 5 MIN EVALUATION':'HIGH PRESSURE TEST — 5% / HOUR — 15 MIN EVALUATION';
+document.getElementById('phaseFinishBtn').textContent=active.phase==='low'?'FINISH LOW → HIGH':'FINISH TEST';
+document.getElementById('mStart').textContent=p.start.toFixed(2)+' '+active.unit;
+document.getElementById('mMin').textContent=(p.start-allow).toFixed(2)+' '+active.unit;
+document.getElementById('mAllowed').textContent=allow.toFixed(2)+' '+active.unit;
+document.getElementById('tallyTitle').textContent=(active.phase==='low'?'Low':'High')+' Pressure Tally';
+renderReadings();
+updateContinueUI((Date.now()-new Date(p.startedAt).getTime())/1000);
+}
+
+function renderReadings(){
+if(!active)return;
+const p=currentPhase(),allow=phaseAllowedDrop(),body=document.getElementById('readingBody');
+body.innerHTML=p.readings.map((r,i)=>{
+const val=r.pressure===''?null:Number(r.pressure),drop=val===null?null:p.start-val,ok=val===null?null:drop<=allow+1e-9,cls=ok===null?'wait':ok?'ok':'fail',txt=ok===null?'Pending':ok?'OK':'FAIL';
+return `<tr><td><b>${r.minute}</b></td><td>${new Date(r.timestamp).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</td><td><input type="number" inputmode="decimal" step="0.01" value="${esc(r.pressure)}" placeholder="Enter actual pressure" oninput="setPressure(${i},this.value)"></td><td>${drop===null?'—':drop.toFixed(2)+' '+active.unit}</td><td>${allow.toFixed(2)+' '+active.unit}</td><td><span class="pill ${cls}">${txt}</span></td><td><input style="width:180px" value="${esc(r.note)}" placeholder="Note..." oninput="setNote(${i},this.value)"></td></tr>`;
+}).join('');
+refreshLiveMetrics();
+}
+
+function updateContinueUI(elapsed){
+if(!active)return;
+const p=currentPhase(),evaluationReached=elapsed>=p.duration*60;
+const box=document.getElementById('continueBox'),actions=document.getElementById('continueActions');
+if(active.phase==='low'){
+box.style.display='block';
+if(!evaluationReached){
+box.className='phase-banner low';box.textContent='LOW PRESSURE — STABILIZATION IN PROGRESS. Data collection continues until you manually finish the phase.';actions.style.display='none';actions.innerHTML='';
+}else{
+const result=phaseResult();
+actions.style.display='flex';
+if(result==='FAIL'){
+box.className='phase-banner fail';box.textContent='LOW PRESSURE — FINAL READING IS BELOW THE ALLOWED MINIMUM.';
+actions.innerHTML='<button class="btn danger" onclick="finishFailedLow()">FINISH TEST — FAIL</button>';
+}else if(result==='PASS'){
+box.className='phase-banner pass';box.textContent='LOW PRESSURE PASSED — You may finish Low now, or continue stabilization.';
+actions.innerHTML='<button class="btn blue" onclick="continueHigh()">CONTINUE TO HIGH PRESSURE →</button>';
+}else{
+box.className='phase-banner low';box.textContent='LOW PRESSURE — Evaluation reached. Enter the final actual pressure reading before continuing.';
+actions.innerHTML='';
+}
+}
+}else{
+box.style.display='none';actions.style.display='none';actions.innerHTML='';
+}
+}
+
+function continueHigh(){
+if(!active||active.phase!=='low')return;
+const elapsed=(Date.now()-new Date(active.low.startedAt).getTime())/1000;
+if(elapsed<active.low.duration*60){toast('Low pressure must reach the 5-minute evaluation period first.');return}
+const result=phaseResult();
+if(result==='FAIL'){toast('Low pressure failed. High pressure cannot start.');return}
+if(result!=='PASS'){toast('Enter the final actual pressure reading before continuing.');return}
+active.low.finishedAt=new Date().toISOString();
+active.low.result='PASS';
+active.phase='high';
+active.high.startedAt=new Date().toISOString();
+active.high.readings=[];
+lastRenderedMinute=-1;
+save();renderLive();startTimer();
+toast('Low complete. High pressure test started.');
+}
+
+function finishTest(){
+if(!active)return;
+if(active.phase==='low'){
+const elapsed=(Date.now()-new Date(active.low.startedAt).getTime())/1000;
+if(elapsed<active.low.duration*60){toast('Low test cannot be finished before 5 minutes.');return}
+const result=phaseResult();
+if(result==='FAIL'){finishFailedLow();return}
+if(result!=='PASS'){toast('Enter the final actual pressure reading before finishing Low.');return}
+active.low.finishedAt=new Date().toISOString();
+active.low.result='PASS';
+active.phase='high';
+active.high.startedAt=new Date().toISOString();
+active.high.readings=[];
+lastRenderedMinute=-1;
+save();renderLive();startTimer();
+toast('Low finished. High pressure test started.');
+return;
+}
+
+const elapsed=(Date.now()-new Date(active.high.startedAt).getTime())/1000;
+if(elapsed<active.high.duration*60){toast('High test cannot be finished before the 15-minute evaluation period.');return}
+const highResult=phaseResult();
+if(highResult==='FAIL')active.status='fail';
+else if(highResult==='PASS')active.status='completed';
+else{toast('Enter the final actual pressure reading before finishing High.');return}
+clearInterval(timerInt);
+active.high.finishedAt=new Date().toISOString();
+active.finishedAt=new Date().toISOString();
+save();
+const id=active.id,status=active.status;
+active=null;
+toast(status==='fail'?'Test saved as FAIL.':'Test completed.');
+setTimeout(()=>openDetail(id),250);
+}
+
+function finishFailedLow(){
+if(!active)return;
+clearInterval(timerInt);
+active.low.result='FAIL';
+active.low.finishedAt=new Date().toISOString();
+active.status='fail';
+active.finishedAt=new Date().toISOString();
+save();
+const id=active.id;active=null;
+toast('Low pressure failed. Test saved as FAIL.');
+setTimeout(()=>openDetail(id),250);
+}
+
+function phaseResultForSaved(p){
+if(!p)return null;
+const last=finalReading(p);
+if(!last)return null;
+return p.start-Number(last.pressure)<=phaseAllowedSaved(p)+1e-9?'PASS':'FAIL';
+}
+function phaseAllowedSaved(p){
+return p.start*(RATE_PER_HOUR/100)*(Number(p.duration||0)/60);
+}
+
+function confirmLeave(){
+if(confirm('Leave the active test? The test will remain saved and the timer will stop while you are away.')){
+clearInterval(timerInt);
+if(active){active.status='live';save()}
+active=null;showView('tests');
+}
+}
+
+function renderRecent(){document.getElementById('recent').innerHTML=tests.slice(0,5).map(testRow).join('')||`<div class="empty">No test records yet.</div>`}
+function testRow(t){
+const st=t.status==='completed'?['ok','Completed']:t.status==='fail'?['fail','FAIL']:['live','In Progress'];
+return `<button class="row" style="width:100%;background:white;border:0;text-align:left" onclick="openDetail('${t.id}')"><div><div class="row-title">${esc(t.testNo)} — ${esc(t.name)}</div><div class="row-meta">${esc(t.step)} · ${fmtDate(t.startedAt)}</div></div><div class="status"><i class="dot ${st[0]}"></i>${st[1]}　›</div></button>`;
+}
+function renderTests(){document.getElementById('allTests').innerHTML=tests.map(testRow).join('')||`<div class="empty">No test records yet.</div>`}
+
+function openDetail(id){
+const t=tests.find(x=>x.id===id);if(!t)return;
+const lowR=t.low?phaseResultForSaved(t.low):null,highR=phaseResultForSaved(t.high),bad=t.status==='fail';
+document.getElementById('detailPanel').innerHTML=`<div class="panel">
+<div class="section-head" style="margin-top:0"><div><h1>${esc(t.testNo)}</h1><p class="sub" style="margin:4px 0">${esc(t.name)} · ${esc(t.step)}</p></div><span class="pill ${bad?'fail':t.status==='live'?'wait':'ok'}">${bad?'FAIL':t.status==='live'?'IN PROGRESS':'COMPLETED'}</span></div>
+<div class="metrics"><div class="metric"><span>Unit</span><b>${esc(t.unit)}</b></div><div class="metric"><span>Low</span><b>${t.lowIncluded?'YES':'NO'}</b></div><div class="metric"><span>High Evaluation</span><b>15 min</b></div><div class="metric"><span>Criterion</span><b>5% / hour</b></div></div>
+<p class="row-meta">Started: ${fmtDate(t.startedAt)} · Operator: ${esc(t.operator||'—')} · Witness: ${esc(t.witness||'—')}</p>
+${t.low?`<div class="phase-banner ${lowR==='FAIL'?'fail':lowR==='PASS'?'pass':'low'}">LOW PRESSURE: ${lowR||'PENDING'}</div>${phaseTableSaved(t.low,t.unit)}`:''}
+<div class="phase-banner ${highR==='FAIL'?'fail':highR==='PASS'?'pass':'high'}">HIGH PRESSURE: ${highR||'PENDING'}</div>
+${phaseTableSaved(t.high,t.unit)}
+<div class="actions"><button class="btn secondary" onclick="printReport('${t.id}')">Print / PDF</button></div>
+${t.note?`<p><b>Notes:</b> ${esc(t.note)}</p>`:''}
+</div>`;
+showView('detail');
+}
+
+function phaseTableSaved(p,unit){
+if(!p)return '';
+const allow=phaseAllowedSaved(p);
+return `<div class="table-wrap"><table class="reading-table"><thead><tr><th>Minute</th><th>Timestamp</th><th>Pressure</th><th>Drop</th><th>Limit</th><th>Status</th><th>Note</th></tr></thead><tbody>${p.readings.map(r=>{
+const val=r.pressure===''?null:Number(r.pressure),drop=val===null?null:p.start-val,ok=val===null?null:drop<=allow+1e-9;
+return `<tr><td>${r.minute}</td><td>${new Date(r.timestamp).toLocaleTimeString('en-GB')}</td><td>${val===null?'—':val.toFixed(2)+' '+unit}</td><td>${drop===null?'—':drop.toFixed(2)+' '+unit}</td><td>${allow.toFixed(2)} ${unit}</td><td><span class="pill ${ok===null?'wait':ok?'ok':'fail'}">${ok===null?'Pending':ok?'OK':'FAIL'}</span></td><td>${esc(r.note||'')}</td></tr>`;
+}).join('')}</tbody></table></div>`;
+}
+
+function printReport(id){
+const t=tests.find(x=>x.id===id);if(!t)return;
+const w=window.open('','_blank');
+if(!w){toast('Popup blocked. Allow popups to print the report.');return}
+w.document.write(`<html><head><title>${esc(t.testNo)} - Testing & Subsea</title><style>body{font-family:Arial;padding:30px;color:#222}h1{margin-bottom:4px}.meta{color:#555;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin:12px 0 28px}th,td{border:1px solid #ccc;padding:7px;text-align:left}th{background:#eee}</style></head><body><h1>Testing & Subsea — Tally Book</h1><h2>${esc(t.testNo)} — ${esc(t.name)}</h2><div class="meta">Step: ${esc(t.step)} | Operator: ${esc(t.operator||'—')} | Witness: ${esc(t.witness||'—')} | Unit: ${esc(t.unit)} | Criterion: 5% / hour</div>${t.low?reportPhase(t.low,'LOW PRESSURE',t.unit):''}${reportPhase(t.high,'HIGH PRESSURE',t.unit)}<p>${esc(t.note||'')}</p></body></html>`);
+w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+function reportPhase(p,title,unit){
+const allow=phaseAllowedSaved(p),res=phaseResultForSaved(p);
+return `<h3>${title} — ${res||'PENDING'}</h3><p>Start: ${p.start.toFixed(2)} ${unit} | Evaluation period: ${p.duration} min | Criterion: 5% / hour | Allowed drop: ${allow.toFixed(2)} ${unit}</p><table><tr><th>Minute</th><th>Time</th><th>Pressure</th><th>Drop</th><th>Status</th><th>Note</th></tr>${p.readings.map(r=>{
+const v=r.pressure===''?null:Number(r.pressure),d=v===null?null:p.start-v,ok=v===null?null:d<=allow+1e-9;
+return `<tr><td>${r.minute}</td><td>${new Date(r.timestamp).toLocaleTimeString('en-GB')}</td><td>${v===null?'—':v.toFixed(2)+' '+unit}</td><td>${d===null?'—':d.toFixed(2)+' '+unit}</td><td>${ok===null?'Pending':ok?'OK':'FAIL'}</td><td>${esc(r.note||'')}</td></tr>`;
+}).join('')}</table>`;
+}
+
+window.addEventListener('load',()=>{
+setTimeout(()=>document.getElementById('splash').classList.add('hide'),1200);
+renderRecent();
+});
+</script>
+</body>
+</html>
